@@ -24,9 +24,12 @@ htmlcov/
 .ipynb_checkpoints/
 .DS_Store
 
-# Beaker local state
+# Beaker local state and credentials. Beaker loads a repo-root .env at server
+# start, which is the supported way to hand env-var credentials (ECMWF ECDS,
+# OpenAQ, TAHMO) to the subkernel.
 .beaker/
 beaker.conf
+.env
 
 # Agent session outputs. The subkernel's working directory is wherever
 # `beaker notebook` was launched, so the Zarr stores, figures, and reports
