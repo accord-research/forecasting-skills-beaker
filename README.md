@@ -65,11 +65,52 @@ Fetch the latest GFS forecast for the same region from the dynamical.org
 catalog, aggregate both to daily, and plot them side by side.
 ```
 
-Several fetchers need no credentials at all — CHIRPS, ARCO-ERA5, CMIP6, dynamical.org, GHCN-Daily,
-OISST — so you can build a real pipeline immediately. Others need free accounts (ECMWF, NASA
-Earthdata, OpenAQ, TAHMO), supplied as environment variables in the shell where you run
-`uv run beaker notebook`. The Environment preview in the notebook shows which ones you have; ask
-the agent and it will tell you what's missing for a given source.
+Several fetchers need no credentials at all — CHIRPS, ARCO-ERA5, CMIP6, dynamical.org (GFS, GEFS,
+ECMWF IFS-ENS and more), GHCN-Daily, OISST — so you can build a real pipeline immediately. The
+rest need accounts; see the next section.
+
+## Data source credentials
+
+Four fetchers authenticate to their data providers. Ask the notebook *"What credentials do I have
+available?"* any time — it reports presence without ever reading the values.
+
+| Fetcher | Credential | Where to get it |
+|---|---|---|
+| `imerg-fetch`, `smap-fetch` | NASA Earthdata username + password | Free, instant: [urs.earthdata.nasa.gov](https://urs.earthdata.nasa.gov/) |
+| `ecmwf-fetch` | ECMWF ECDS personal token | Free: create an ECMWF account, token is in your [ECDS profile](https://ecds.ecmwf.int/) |
+| `openaq-fetch` | OpenAQ API key | Free, instant: [explore.openaq.org/register](https://explore.openaq.org/register) |
+| `tahmo-fetch` | TAHMO API username + password | Free for research, human-approved: [tahmo.org](https://tahmo.org/climate-data/) |
+
+**NASA Earthdata** goes in `~/.netrc` (create it with `chmod 600` permissions):
+
+```
+machine urs.earthdata.nasa.gov
+    login YOUR_USERNAME
+    password YOUR_PASSWORD
+```
+
+It's read at fetch time, so a running notebook picks it up immediately — no restart. One-time
+gotcha: if the first fetch fails with an authorization error, approve **NASA GESDISC DATA
+ARCHIVE** under *Applications → Authorized Apps* on the Earthdata site.
+
+**Everything else** is environment variables. Put them in a `.env` file at the root of this repo
+(it's gitignored; keep it `chmod 600`) and they reach the notebook the next time you start it:
+
+```bash
+ECMWF_DATASTORES_URL=https://ecds.ecmwf.int/api
+ECMWF_DATASTORES_KEY=your-ecds-token
+OPENAQ_API_KEY=your-openaq-key
+TAHMO_API_USERNAME=your-tahmo-username
+TAHMO_API_PASSWORD=your-tahmo-password
+```
+
+Only add the lines you have — each fetcher checks its own variables. Beaker loads `.env` at
+server start, so restart `uv run beaker notebook` after editing it. Exporting the same variables
+in your shell before launching works too.
+
+One extra requirement for `ecmwf-fetch`: the eccodes system library, for decoding GRIB —
+`brew install eccodes` on macOS, `apt install libeccodes0` on Debian/Ubuntu. And be patient with
+it: ECDS retrievals are queued server-side and can take from minutes to over an hour.
 
 ## What's inside
 
