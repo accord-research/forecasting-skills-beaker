@@ -112,8 +112,8 @@ class ForecastingContext(BeakerContext):
         """
         return (
             "This notebook is set up for weather/climate data pipelines built from the "
-            "forecasting skills. The subkernel has already imported `xarray as xr` and "
-            "`numpy as np`, and defines `run_skill(skill_name, *args)` plus "
+            "forecasting skills. The subkernel has already imported `xarray as xr`, "
+            "`numpy as np`, `os`, and `sys`, and defines `run_skill(skill_name, *args)` plus "
             "`FORECASTING_SKILLS_HOME`, the local checkout of the skills repository; check the "
             "Environment preview for the checkout state and available credentials.\n\n"
             "Skills read and write a shared Zarr envelope: gridded data is "

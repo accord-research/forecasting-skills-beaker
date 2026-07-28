@@ -135,6 +135,42 @@ def test_run_skill_names_the_missing_skill(context_dir, monkeypatch, tmp_path):
         namespace["run_skill"]("no-such-skill")
 
 
+def test_run_skill_survives_beakers_namespace_cleanup(context_dir, monkeypatch, tmp_path):
+    """run_skill must not depend on os/sys/subprocess living in the namespace.
+
+    Beaker runs the context setup procedure BEFORE PythonSubkernel.setup(),
+    whose init code ends with `del importlib, os, site, sys` -- deleting the
+    module-level imports this procedure just made. A run_skill that looks
+    those names up in its globals then raises NameError as soon as a skill
+    writes to stderr (uv always does, during env resolution). Reproduce the
+    deletion and run a real script through the real `uv`.
+    """
+    import shutil
+
+    if shutil.which("uv") is None:
+        pytest.skip("uv not on PATH")
+
+    skill_dir = tmp_path / "checkout" / "skills" / "toy" / "scripts"
+    skill_dir.mkdir(parents=True)
+    (skill_dir / "toy.py").write_text(
+        'import sys\nprint("out")\nprint("err", file=sys.stderr)\n', encoding="utf-8"
+    )
+
+    monkeypatch.setenv("FORECASTING_SKILLS_NO_SYNC", "1")
+    monkeypatch.setenv("FORECASTING_SKILLS_HOME", str(tmp_path / "checkout"))
+    source = (context_dir / "procedures" / "python3" / "setup.py").read_text(encoding="utf-8")
+    namespace: dict = {}
+    exec(compile(source, "setup.py", "exec"), namespace)  # noqa: S102 - fixture under test
+
+    for name in ("importlib", "os", "site", "sys"):  # what Beaker deletes
+        namespace.pop(name, None)
+
+    proc = namespace["run_skill"]("toy")
+    assert proc.returncode == 0
+    assert "out" in proc.stdout
+    assert "err" in proc.stderr
+
+
 def test_environment_procedure_reports_credentials(context_dir):
     """The preview must describe credentials without ever reading them."""
     source = (context_dir / "procedures" / "python3" / "environment.py").read_text(encoding="utf-8")

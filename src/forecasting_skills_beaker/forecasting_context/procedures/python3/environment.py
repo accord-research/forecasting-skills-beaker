@@ -1,6 +1,16 @@
 # Report what the forecasting toolchain looks like in this subkernel, for the
 # preview panel. Returns a plain JSON-serializable dict as the cell's value.
 #
+# The two imports below are namespace repair, not for this file (the function
+# imports what it needs locally). Beaker orders session startup as: context
+# setup procedure, then PythonSubkernel.setup(), whose init code ends with
+# `del importlib, os, site, sys` -- so os and sys imported during context setup
+# are deleted again. This procedure also runs at preview generation, which
+# happens AFTER subkernel setup, so binding them here makes `os` and `sys`
+# reliably available in agent and user cells.
+import os
+import sys
+#
 # The credential block is the point of this procedure. Four fetchers need
 # environment credentials, and a missing one surfaces as a subprocess failure
 # partway through a pipeline. Showing presence up front turns that into

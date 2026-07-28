@@ -82,6 +82,15 @@ def run_skill(skill, *args, timeout=3600):
     is set to the skill's directory so commands written against that
     convention resolve as documented.
     """
+    # Local imports, deliberately: Beaker runs the context's setup procedure
+    # BEFORE PythonSubkernel.setup(), whose init code ends with
+    # `del importlib, os, site, sys` -- deleting this module's top-level os and
+    # sys from the notebook namespace right after we bound them. A body-level
+    # import is immune to any later surgery on the user namespace.
+    import os
+    import subprocess
+    import sys
+
     skill_dir = FORECASTING_SKILLS_HOME / "skills" / str(skill)
     scripts = sorted((skill_dir / "scripts").glob("*.py"))
     if not scripts:
