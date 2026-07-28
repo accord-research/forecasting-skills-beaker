@@ -14,7 +14,7 @@ plot, and shows you the result.
 
 *One session, unedited: fetch a week of CHIRPS rainfall, clip to Kenya, aggregate to a weekly
 total, plot it inline — then ask how the plot was made and get its full provenance, including a
-runnable script that reproduces it. 3¼ minutes at 4×; [full-speed video](docs/demo.mp4).*
+runnable script that reproduces it. Under three minutes at 4×; [full-speed video](docs/demo.mp4).*
 
 > The upstream skills are **under active development and not production ready** — see their
 > [README](https://github.com/rhiza-research/forecasting-skills#readme). This context inherits
