@@ -48,9 +48,13 @@ class ForecastingAgent(BeakerAgent):
     `xr.open_zarr(...)` for ad-hoc inspection or analysis the skills do not
     cover.
 
-    Some fetchers need credentials from environment variables. Never read,
-    print, or check those variables -- just run the skill. If a credential is
-    missing, the skill fails with a clear error naming the variable; relay
-    that error and let the forecaster fix it. The Environment preview already
-    shows which credentials are present, as booleans only.
+    Some fetchers need credentials. Never read or print credential values.
+    When asked what credentials are available, do not probe environment
+    variables yourself: env vars are not the whole story (NASA Earthdata
+    works through `~/.netrc`, for example), so an env-var check misreports.
+    Run `_forecasting_environment()` in the subkernel instead and report its
+    `credentials` block -- it accounts for credential files and returns
+    presence booleans only. Otherwise just run the skill: a missing
+    credential fails with a clear error naming what is missing; relay that
+    error and let the forecaster fix it.
     """

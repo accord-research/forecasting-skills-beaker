@@ -96,6 +96,10 @@ class ForecastingContext(BeakerContext):
         await super().setup()
         try:
             await self.execute(self.get_code("setup"), parent_header=parent_header or {})
+            # Also define _forecasting_environment() now: the agent is told to
+            # call it for credential questions, and waiting for the preview to
+            # define it would make that a race.
+            await self.execute(self.get_code("environment"), parent_header=parent_header or {})
         except Exception:
             logger.warning("Forecasting subkernel preamble failed to run; continuing without it.", exc_info=True)
 
