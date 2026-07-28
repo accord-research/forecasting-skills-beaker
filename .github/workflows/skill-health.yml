@@ -1,0 +1,48 @@
+name: Upstream health
+
+# Everything upstream of this package floats. The agent's skill instructions
+# are fetched from rhiza-research/forecasting-skills `main` at session start,
+# and the local checkout run_skill executes from fast-forwards to the same
+# `main` -- so a notebook can change behavior with no commit here at all.
+#
+# That is the intent, but it means this repo has to notice upstream drift on
+# its own. This job resolves dependencies fresh, then exercises the full suite
+# including the live skill fetches and the skills.json-vs-upstream listing
+# comparison -- so a new upstream skill, a removed one, or a moved directory
+# surfaces as a failed run rather than as an agent that has quietly stopped
+# knowing about a capability.
+#
+# Beaker drops a skill it cannot load without raising, which is exactly why
+# this needs to be checked on a schedule rather than trusted to fail loudly on
+# its own.
+
+on:
+  schedule:
+    - cron: "23 6 * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "src/forecasting_skills_beaker/forecasting_context/skills.json"
+      - ".github/workflows/skill-health.yml"
+
+jobs:
+  upstream:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Resolve dependencies at their latest versions
+        run: uv lock --upgrade
+
+      - name: Show what resolved
+        run: uv pip list 2>/dev/null | grep -Ei "beaker|xarray|zarr" || true
+
+      - name: Install
+        run: uv sync --extra dev
+
+      - name: Run the full suite against latest everything
+        run: uv run pytest -q

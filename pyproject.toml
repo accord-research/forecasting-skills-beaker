@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "forecasting-skills-beaker"
+version = "0.1.0"
+description = "Beaker notebook context for the rhiza-research forecasting skills: composable weather/climate data-pipeline scripts driven by an AI agent"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "accord-research" }]
+keywords = ["beaker", "weather", "climate", "agent-skills", "notebook"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Topic :: Scientific/Engineering :: Atmospheric Science",
+]
+dependencies = [
+  # Pinned to the 2.0.x line: the context API this package builds on (skills.json
+  # discovery, procedures, system_preamble) is not yet stable across minors.
+  "beaker-notebook~=2.0.9",
+  # The skills do their own work in uv-managed script environments; these are
+  # for the subkernel, so the agent and user can open the envelope Zarrs the
+  # skills produce and look at them without leaving the notebook.
+  "xarray",
+  "zarr>=3.1.0",
+  "matplotlib",
+]
+
+[project.urls]
+Homepage = "https://github.com/accord-research/forecasting-skills-beaker"
+Repository = "https://github.com/accord-research/forecasting-skills-beaker"
+Issues = "https://github.com/accord-research/forecasting-skills-beaker/issues"
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-asyncio"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/forecasting_skills_beaker"]
+
+# Beaker's build hook scans the package for BeakerContext subclasses and emits
+# the metadata that makes the context discoverable after install. It has to
+# import the context module, so the runtime dependencies must be present.
+[tool.hatch.build.hooks.beaker]
+require-runtime-dependencies = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+  "network: requires live network access to github.com",
+]
